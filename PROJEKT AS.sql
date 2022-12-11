@@ -1,6 +1,8 @@
+-- 1. Create Database Sklep_odziezowy
 CREATE DATABASE Sklep_odziezowy;
 USE Sklep_odziezowy;
 
+-- 2. Create table Producenti
 CREATE TABLE Producenci (
 	ID_Producenta VARCHAR(4) PRIMARY KEY,
     Nazwa_Producenta TEXT,
@@ -9,6 +11,7 @@ CREATE TABLE Producenci (
     Data_umowy_z_producentem DATE
     );
     
+-- 3. Create table Produkty
 CREATE TABLE Produkty (
 	ID_Produktu VARCHAR(6) PRIMARY KEY,
     ID_Producenta VARCHAR(4),
@@ -20,7 +23,8 @@ CREATE TABLE Produkty (
     Cena_brutto_sprzedaży INTEGER, CHECK(Cena_brutto_zakupu<Cena_brutto_sprzedaży),
     Procent_VAT_sprzedaży INTEGER, CHECK(Procent_VAT_sprzedaży=23 OR Procent_VAT_sprzedaży=8 OR Procent_VAT_sprzedaży=5)
     );
-    
+
+-- 4. Create table Zamowienia
 CREATE TABLE Zamowienia (
 	ID_Zamówienia VARCHAR(5) PRIMARY KEY,
     ID_Klienta VARCHAR(4),
@@ -28,6 +32,7 @@ CREATE TABLE Zamowienia (
     Data_zamówienia DATE
     );
 
+-- 5.Create table Klienci
 CREATE TABLE Klienci (
     ID_Klienta VARCHAR(4) PRIMARY KEY,
     ID_zamówienia VARCHAR(5),
@@ -36,10 +41,13 @@ CREATE TABLE Klienci (
     Adres TEXT
     );
 
+-- 6. Join table with Foreing Key Produkty-Producenci, Zamowienia-Produkty, Zamowienia-Klienci
+
 ALTER TABLE Produkty ADD CONSTRAINT Producenci_fk FOREIGN KEY (ID_Producenta) REFERENCES Producenci(ID_Producenta);
 ALTER TABLE Zamowienia ADD CONSTRAINT Produkty_fk FOREIGN KEY (ID_Produktu) REFERENCES Produkty(ID_Produktu);
 ALTER TABLE Klienci ADD CONSTRAINT Zamówienia_fk FOREIGN KEY (ID_Zamówienia) REFERENCES Zamowienia(ID_Zamówienia);
 
+-- 7. Add data to tables
 INSERT INTO Producenci
 	VALUES ("P001", "Szanel", "Fabryczna 1 Niu Jork", 1111111111, "2000-01-01"),
 		("P002", "DolczeGabana", "Robotnicza 20 Los Andzeles", 222222222, "2005-01-01"),
@@ -91,27 +99,27 @@ INSERT INTO Klienci
         ("K009", "Z0008", "Selena", "Gomes", "ul. Wolves Texas"),
         ("K010", "Z0010", "Maili", "Cajrus", "ul. Wrecking Ball Franklin");
         
--- 8. Wyświetl wszystkie produkty z wszystkimi danymi od producenta który znajduje się na pozycji 1 w tabeli „Producenci” 
+-- 8. Display all products with all data from the manufacturer in position 1 in the table „Producenci” 
 SELECT *
 FROM Produkty
 JOIN Producenci
 WHERE Producenci.ID_Producenta="P001";
 
--- 9. Posortuj te produkty alfabetycznie po nazwie
+-- 9.Sort these products alphabetically by name
 SELECT *
 FROM Produkty
 JOIN Producenci
 WHERE Producenci.ID_Producenta="P001"
 ORDER BY Produkty.Nazwa_produktu;
 
--- 10. Wylicz średnią cenę za produktu od producenta z pozycji 1
+-- 10. Calculate the average price for the product from the manufacturer in item 1
 SELECT Producenci.ID_Producenta, Producenci.Nazwa_producenta, ROUND(AVG(Cena_netto_zakupu),2) AS "średnia cena netto", ROUND(AVG(Cena_brutto_zakupu),2) AS "średnia cena brutto"
 FROM Produkty
 JOIN Producenci
 ON Producenci.ID_Producenta=Produkty.ID_Producenta
 WHERE Producenci.ID_Producenta="P001";
 
---  11. Wyświetl dwie grupy produktów tego producenta:
+--  11. View two groups of products from this manufacturer:
 WITH Producent_P001	AS(
 	SELECT 
 		Producenci.ID_Producenta, 
@@ -134,7 +142,7 @@ WITH Producent_P001	AS(
     GROUP BY Producent_P001.ID_Produktu
     HAVING AVG(Producent_P001.cena_netto_zakupu);
 
--- 12. Wyświetl produkty zamówione, wyświetlając tylko ich nazwę
+-- 12.Display ordered products by displaying only their name
 
 SELECT Produkty.ID_produktu, Produkty.Nazwa_produktu
 FROM Produkty
@@ -142,7 +150,7 @@ JOIN Zamowienia
 ON Zamowienia.ID_produktu=Produkty.ID_Produktu;
 -- dodałam też ID produktu, ponieważ wszystkie nazwy są takie same :)
 
--- 13. Wyświetl wszystkie produkty zamówione – ograniczając wyświetlanie do 5 pozycji
+-- 13. Display all ordered products - limiting the display to 5 items
 
 SELECT Produkty.ID_produktu, Produkty.Nazwa_produktu
 FROM Produkty
@@ -150,21 +158,21 @@ JOIN Zamowienia
 ON Zamowienia.ID_produktu=Produkty.ID_Produktu
 LIMIT 5;
 
--- 14. Policz łączną wartość wszystkich zamówień
+-- 14. Count the total values of all orders
 
 SELECT SUM(Produkty.cena_brutto_sprzedaży) AS wartosc_wszystkich_zamowien
 FROM Zamowienia
 JOIN Produkty
 ON Zamowienia.ID_produktu=Produkty.ID_Produktu;
 
--- 15. Wyświetl wszystkie zamówienia wraz z nazwą produktu sortując je wg daty od najstarszego do najnowszego
+-- 15. View all orders with product name sorted by date from oldest to newest
 SELECT Zamowienia.ID_zamówienia, Zamowienia.ID_Produktu, Produkty.Nazwa_produktu, Zamowienia.Data_zamówienia
 FROM Zamowienia
 JOIN Produkty
 ON Zamowienia.ID_Produktu=Produkty.ID_Produktu
 ORDER BY Zamowienia.Data_zamówienia ASC;
 
--- 16. Sprawdź czy w tabeli produkty masz uzupełnione wszystkie dane – wyświetl pozycje dla których brakuje danych
+-- 16. Check if you have completed all the data in the products table - display items for which data is missing
 SELECT *
 FROM Produkty
 WHERE 
@@ -178,7 +186,7 @@ OR cena_netto_sprzedaży IS NULL
 OR cena_brutto_sprzedaży IS NULL
 OR procent_VAT_Sprzedaży IS NULL;
 
--- 17. Wyświetl produkt najczęściej sprzedawany wraz z jego ceną
+-- 17. Display the most sold product along with its price
 SELECT Produkty.ID_produktu, Produkty.Nazwa_Produktu, Produkty.cena_netto_sprzedaży, COUNT(Zamowienia.ID_Produktu) AS ilosc_zamowien
 FROM Produkty
 JOIN Zamowienia
@@ -201,7 +209,7 @@ HAVING COUNT(*)=
 		ilosc_zamowien
             );
 
--- 18. Znajdź dzień w którym najwięcej zostało złożonych zamówień
+-- 18. Find the day with the most orders placed
 SELECT Zamowienia.Data_zamówienia, COUNT(Zamowienia.ID_Produktu) AS ilosc_zamowien_na_dzien
 FROM Zamowienia
 GROUP BY Zamowienia.Data_zamówienia
